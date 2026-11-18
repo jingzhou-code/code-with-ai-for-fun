@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复旦大学（邯郸校区）三维数字孪生全景还原 | Fudan University Handan Campus 3D</title>
+    <meta
+      name="description"
+      content="基于 Three.js 1:1 比例构建的复旦大学邯郸校区全景三维数字孪生，完整覆盖本部、北区、东区、南区四大分区、1383亩校园肌理、光华楼、相辉堂、子彬院、奕柱堂、正大体育馆、燕园、曦园与昼夜四季光影。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Loading Curtain -->
+    <div id="loading-curtain" role="status" aria-live="polite">
+      <div class="loading-inner">
+        <svg class="fudan-seal" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="0.9" stroke-dasharray="2 2" />
+          <text x="60" y="54" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor" class="serif-glyph">復旦</text>
+          <text x="60" y="76" text-anchor="middle" font-size="11" letter-spacing="3" fill="currentColor">1905</text>
+        </svg>
+        <p class="loading-motto">日月光华 · 旦复旦兮</p>
+        <p class="loading-sub">正在构筑复旦大学邯郸校区（本部 · 北区 · 东区 · 南区）三维建筑群…</p>
+        <div class="loading-track">
+          <div id="loading-bar" class="loading-bar"></div>
+        </div>
+        <span id="loading-stage" class="loading-stage">初始化场景地形与路网…</span>
+      </div>
+    </div>
+
+    <!-- WebGL Viewport -->
+    <main id="viewport-container">
+      <canvas id="campus-canvas" aria-label="复旦大学邯郸校区三维交互场景"></canvas>
+      <!-- 3D Floating Labels Layer -->
+      <div id="labels-layer" aria-hidden="true"></div>
+    </main>
+
+    <!-- Top Navigation & Atmosphere Header -->
+    <header id="top-bar">
+      <div class="brand-block">
+        <div class="brand-emblem" aria-hidden="true">旦</div>
+        <div class="brand-text">
+          <h1 id="page-title">复旦大学 · 邯郸校区</h1>
+          <p class="brand-meta">
+            <span id="live-zone-readout">本部 · 中轴线</span>
+            <span class="meta-sep">·</span>
+            <span>邯郸路220号 · 1383亩全境</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Modes -->
+      <nav class="mode-switcher" aria-label="视角漫游模式">
+        <button id="mode-orbit-btn" class="mode-btn active" type="button" title="自由鸟瞰缩放旋转 (1)">
+          鸟瞰全域
+        </button>
+        <button id="mode-walk-btn" class="mode-btn" type="button" title="第一人称步行漫游 WASD (2)">
+          漫步校园
+        </button>
+        <button id="mode-bike-btn" class="mode-btn" type="button" title="第一人称单车骑行 (3)">
+          单车骑行
+        </button>
+        <button id="mode-tour-btn" class="mode-btn" type="button" title="十景自动航拍导览 (4)">
+          百廿巡礼
+        </button>
+      </nav>
+
+      <!-- Time, Season & Visual Toggles -->
+      <div class="atmosphere-bar">
+        <div class="time-presets" role="group" aria-label="时刻预设">
+          <button id="preset-dawn-btn" class="chip-btn" type="button" data-hour="6.5">晨曦</button>
+          <button id="preset-noon-btn" class="chip-btn active" type="button" data-hour="13.8">晴昼</button>
+          <button id="preset-dusk-btn" class="chip-btn" type="button" data-hour="17.75">夕照</button>
+          <button id="preset-night-btn" class="chip-btn" type="button" data-hour="20.5">夜色</button>
+        </div>
+        <label class="time-slider-wrap" for="time-slider">
+          <span id="clock-readout" class="tabular-num">13:48</span>
+          <input id="time-slider" type="range" min="5" max="23.5" step="0.05" value="13.8" />
+        </label>
+        <button id="season-toggle-btn" class="chip-btn" type="button" title="切换春夏翠樟 / 深秋金梧桐">
+          春夏翠樟
+        </button>
+        <button id="wind-toggle-btn" class="chip-btn" type="button" title="可视化著名的光华楼风洞流场">
+          光华风洞
+        </button>
+        <button id="labels-toggle-btn" class="chip-btn active" type="button" title="显示或隐藏三维建筑铭牌">
+          建筑铭牌
+        </button>
+      </div>
+    </header>
+
+    <!-- Left Collapsible Landmark Directory -->
+    <aside id="left-drawer" aria-label="校区建筑与景点导览">
+      <div class="drawer-header">
+        <div class="drawer-title-row">
+          <h2>校园风物名录</h2>
+          <button id="toggle-drawer-btn" class="icon-btn" type="button" aria-label="收起或展开导览目录" title="收起/展开目录">
+            ‹
+          </button>
+        </div>
+        <div class="search-box">
+          <input
+            id="landmark-search-input"
+            type="search"
+            placeholder="搜索光华楼、相辉堂、三教、本北高速…"
+            autocomplete="off"
+          />
+        </div>
+        <div id="zone-filter-tabs" class="zone-tabs" role="tablist">
+          <button id="tab-all" class="zone-tab active" data-zone="all" type="button">全部</button>
+          <button id="tab-central" class="zone-tab" data-zone="central" type="button">本部中轴</button>
+          <button id="tab-heritage" class="zone-tab" data-zone="heritage" type="button">历史建筑</button>
+          <button id="tab-eastmain" class="zone-tab" data-zone="eastmain" type="button">光华东侧</button>
+          <button id="tab-north" class="zone-tab" data-zone="north" type="button">北区</button>
+          <button id="tab-east" class="zone-tab" data-zone="east" type="button">东区</button>
+          <button id="tab-south" class="zone-tab" data-zone="south" type="button">南区</button>
+        </div>
+      </div>
+      <ul id="landmark-list" class="landmark-list"></ul>
+    </aside>
+
+    <!-- Collapsed Drawer Re-open Button -->
+    <button id="open-drawer-fab" class="hidden" type="button" title="展开校园风物名录">
+      名录导览 ›
+    </button>
+
+    <!-- Right Selected Landmark Architectural Dossier -->
+    <section id="dossier-card" class="dossier-card" aria-live="polite">
+      <div class="dossier-top">
+        <div>
+          <span id="dossier-zone-badge" class="dossier-badge">本部 · 核心地标</span>
+          <h3 id="dossier-title">光华楼</h3>
+          <p id="dossier-subtitle" class="dossier-en">Guanghua Towers</p>
+        </div>
+        <button id="dossier-close-btn" class="icon-btn" type="button" aria-label="关闭建筑详情">×</button>
+      </div>
+      <dl class="dossier-specs">
+        <div>
+          <dt>落成年代</dt>
+          <dd id="dossier-year">2005年（百年校庆）</dd>
+        </div>
+        <div>
+          <dt>建筑规模</dt>
+          <dd id="dossier-scale">高 142m · 地上30层</dd>
+        </div>
+        <div>
+          <dt>建筑风貌</dt>
+          <dd id="dossier-style">现代装饰艺术双子塔</dd>
+        </div>
+      </dl>
+      <p id="dossier-desc" class="dossier-desc"></p>
+      <div class="dossier-quote" id="dossier-lore"></div>
+      <div class="dossier-actions">
+        <button id="dossier-orbit-btn" class="action-btn primary" type="button">最佳视角观赏</button>
+        <button id="dossier-walk-btn" class="action-btn secondary" type="button">降落至此漫步</button>
+      </div>
+    </section>
+
+    <!-- Guided Tour Banner -->
+    <div id="tour-banner" class="tour-banner hidden" aria-live="polite">
+      <div class="tour-step-meta">
+        <span id="tour-index">巡礼 01 / 10</span>
+        <strong id="tour-spot-name">邯郸路220号正校门</strong>
+      </div>
+      <p id="tour-caption">“博学而笃志，切问而近思”——从正校门步入百年复旦中轴。</p>
+      <div class="tour-controls">
+        <button id="tour-prev-btn" class="chip-btn" type="button">上一站</button>
+        <button id="tour-next-btn" class="chip-btn" type="button">下一站</button>
+        <button id="tour-exit-btn" class="chip-btn" type="button">结束巡礼</button>
+      </div>
+    </div>
+
+    <!-- Walk / Bike First-Person HUD -->
+    <div id="walk-hud" class="walk-hud hidden">
+      <div class="walk-keys">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动</span>
+        <span><kbd>Shift</kbd> 加速</span>
+        <span><kbd>Space</kbd> 跳跃</span>
+        <span>拖拽画面 / 点击锁定视角</span>
+        <button id="exit-walk-btn" class="chip-btn" type="button">返回鸟瞰 (Esc)</button>
+      </div>
+    </div>
+
+    <!-- Bottom-Right Interactive Campus Radar Minimap -->
+    <section id="minimap-panel" aria-label="邯郸校区平面雷达图">
+      <div class="minimap-header">
+        <span>全域平面图（点击瞬移）</span>
+        <span id="coords-readout" class="tabular-num">0m E, 0m S</span>
+      </div>
+      <canvas id="minimap-canvas" width="236" height="216"></canvas>
+      <div class="minimap-legend">
+        <span><i class="dot heritage"></i>历史建筑</span>
+        <span><i class="dot academic"></i>教学科研</span>
+        <span><i class="dot dorm"></i>四大书院</span>
+        <span><i class="dot sports"></i>体育园林</span>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
