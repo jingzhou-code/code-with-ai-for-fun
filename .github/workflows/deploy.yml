@@ -1,4 +1,4 @@
-name: Build and Deploy to GitHub Pages
+name: Build and Package Fudan Jiangwan 3D
 
 on:
   push:
@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_enabled: ${{ steps.check_pages.outcome == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,12 +35,25 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Upload build bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fudan-jiangwan-3d-dist
+          path: './dist'
+
+      - name: Check GitHub Pages configuration
+        id: check_pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
+        if: steps.check_pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
   deploy:
+    if: needs.build.outputs.pages_enabled == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
