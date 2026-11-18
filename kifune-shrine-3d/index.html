@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>貴布禰総本宮 貴船神社 — Three.js 全境三社（本宮・結社・奥宮）立体復元</title>
+    <meta
+      name="description"
+      content="使用 Three.js 与自定义 GLSL 着色器完整还原京都洛北水神总本宫「贵船神社」全境：二之鸟居、八十四级表参道石段与三十七基朱涂春日灯笼、本宫社殿、水占斋庭、龙船阁、贵船川床料理、结社天乃磐船与奥宫船形石、日本三大龙穴。"
+    />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body>
+    <div id="webgl-container" aria-label="貴船神社 Three.js 3D 全境空間"></div>
+
+    <!-- Startup Loading Veil -->
+    <div id="loading-veil" role="status" aria-live="polite">
+      <div class="veil-crest">貴</div>
+      <div class="veil-title">貴布禰総本宮 貴船神社</div>
+      <div class="veil-sub">本宮・結社・奥宮・貴船川渓谷を構築中…</div>
+    </div>
+
+    <!-- Proximity Action Button -->
+    <button type="button" id="proximity-prompt" class="proximity-prompt">
+      <span id="proximity-text">参拝する [E]</span>
+    </button>
+
+    <!-- Notification Toast -->
+    <div id="shrine-toast" class="shrine-toast" role="status" aria-live="polite"></div>
+
+    <!-- Main HUD -->
+    <div id="hud-root">
+      <header class="top-bar">
+        <div class="brand-plaque hud-fadeable">
+          <h1>貴布禰総本宮 貴船神社</h1>
+          <p>京都洛北・鞍馬貴船渓谷 全境立体復元（本宮・結社・奥宮・川床）</p>
+        </div>
+
+        <nav class="atmosphere-dock" aria-label="季節と時刻と環境制御">
+          <div class="control-group hud-fadeable" role="group" aria-label="四季切換">
+            <button type="button" id="season-spring" class="shrine-btn" data-season="spring">春・青もみじ</button>
+            <button type="button" id="season-summer" class="shrine-btn" data-season="summer">夏・川床蛍</button>
+            <button type="button" id="season-autumn" class="shrine-btn is-active" data-season="autumn">秋・紅葉灯籠</button>
+            <button type="button" id="season-winter" class="shrine-btn" data-season="winter">冬・雪化粧</button>
+          </div>
+
+          <div class="control-group hud-fadeable" role="group" aria-label="時刻切換">
+            <button type="button" id="time-morning" class="shrine-btn" data-time="morning">朝靄</button>
+            <button type="button" id="time-day" class="shrine-btn" data-time="day">昼景</button>
+            <button type="button" id="time-dusk" class="shrine-btn is-active" data-time="dusk">夕暮れ</button>
+            <button type="button" id="time-night" class="shrine-btn" data-time="night">宵闇灯籠</button>
+          </div>
+
+          <div class="control-group">
+            <button type="button" id="btn-rain" class="shrine-btn hud-fadeable">御神雨</button>
+            <button type="button" id="btn-audio" class="shrine-btn hud-fadeable">渓谷音響 OFF</button>
+            <button type="button" id="btn-photo-mode" class="shrine-btn">写真モード (H)</button>
+          </div>
+        </nav>
+      </header>
+
+      <main class="middle-layer hud-fadeable">
+        <!-- Left: Historical Wooden Plaque Lore -->
+        <aside id="lore-card" class="lore-card" aria-label="境内由緒駒札">
+          <div class="lore-header">
+            <div>
+              <h2 id="lore-title">表参道と春日灯籠</h2>
+              <span id="lore-sub" class="lore-sub">Omotesando Stone Steps &amp; Kasuga Lanterns</span>
+            </div>
+            <button type="button" id="btn-toggle-lore" class="lore-mini-btn">閉じる</button>
+          </div>
+          <p id="lore-body" class="lore-body"></p>
+        </aside>
+
+        <!-- Right: Valley Minimap + Sacred Rituals -->
+        <aside class="right-dock" aria-label="境内図と神事体験">
+          <div class="minimap-card">
+            <div class="minimap-label">
+              <span>貴船境内図</span>
+              <span>北 ↑</span>
+            </div>
+            <canvas id="minimap-canvas" width="114" height="186" title="クリックで各社殿へ移動"></canvas>
+          </div>
+
+          <div class="ritual-stack">
+            <button type="button" id="btn-open-goshuin" class="ritual-action-btn">
+              <span>三社詣 御朱印帳</span>
+              <span id="sansha-progress" class="ritual-badge">0 / 3</span>
+            </button>
+            <button type="button" id="btn-open-mizuura" class="ritual-action-btn">
+              <span>水占みくじを引く</span>
+              <span class="ritual-badge">霊泉</span>
+            </button>
+            <button type="button" id="btn-open-musubi" class="ritual-action-btn">
+              <span>結び文を奉納する</span>
+              <span class="ritual-badge">結社</span>
+            </button>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="bottom-bar hud-fadeable">
+        <div class="nav-status-row">
+          <div class="nav-mode-bar" role="group" aria-label="視点操作モード">
+            <button type="button" id="nav-orbit" class="shrine-btn is-active" data-nav-mode="orbit">自由俯瞰</button>
+            <button type="button" id="nav-walk" class="shrine-btn" data-nav-mode="walk">参拝歩行 (WASD)</button>
+            <button type="button" id="nav-tour" class="shrine-btn" data-nav-mode="tour">三社詣自動巡礼</button>
+          </div>
+          <div id="controls-hint" class="controls-hint">
+            自由俯瞰モード：左ドラッグ回転・右ドラッグ平行移動・ホイール拡大縮小・WASD移動
+          </div>
+        </div>
+
+        <div id="preset-list" class="preset-strip" aria-label="貴船神社十二景カメラプリセット"></div>
+      </footer>
+    </div>
+
+    <!-- Modal 1: Mizuura-mikuji Water Fortune -->
+    <section id="modal-mizuura" class="shrine-modal" role="dialog" aria-modal="true" aria-labelledby="mizuura-heading">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="mizuura-heading">本宮・水占齋庭「水占みくじ」</h3>
+          <button type="button" class="lore-mini-btn" data-close-modal>閉じる</button>
+        </div>
+        <p class="modal-desc">
+          貴船山の石垣より湧き出る御神水に白紙の御神籤を浮かべると、水の霊力によって吉凶と和歌が浮かび上がります。
+        </p>
+        <canvas id="mizuura-canvas" width="440" height="400"></canvas>
+        <div class="modal-actions">
+          <button type="button" id="btn-redraw-mizuura" class="shrine-btn">もう一枚浮かべる</button>
+          <button type="button" class="primary-shrine-btn" data-close-modal>拝受して閉じる</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal 2: Sansha-Mairi Goshuincho -->
+    <section id="modal-goshuin" class="shrine-modal" role="dialog" aria-modal="true" aria-labelledby="goshuin-heading">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="goshuin-heading">貴船神社 三社詣（本宮・奥宮・結社）御朱印帳</h3>
+          <button type="button" class="lore-mini-btn" data-close-modal>閉じる</button>
+        </div>
+        <p class="modal-desc">
+          古来より「本宮 → 奥宮 → 結社」の順に三社を巡拝する「三社詣」を修めると心願が成就すると伝わります。各社殿前にて参拝（二礼二拍手一礼）を行うと御朱印が授与されます。
+        </p>
+        <div id="goshuin-pages" class="goshuin-grid"></div>
+        <div class="modal-actions">
+          <button type="button" class="primary-shrine-btn" data-close-modal>御朱印帳を閉じる</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal 3: Yui-no-Yashiro Musubibumi -->
+    <section id="modal-musubibumi" class="shrine-modal" role="dialog" aria-modal="true" aria-labelledby="musubi-heading">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="musubi-heading">結社（恋の宮）・薄緑の結び文奉納</h3>
+          <button type="button" class="lore-mini-btn" data-close-modal>閉じる</button>
+        </div>
+        <p class="modal-desc">
+          磐長姫命が鎮座し、平安の歌人・和泉式部も祈りを捧げた縁結びの聖地「結社」。願いを薄緑色の「結び文」に託し、境内の結び所へ実際に結び付けます。
+        </p>
+        <div id="musubi-presets" class="musubi-presets"></div>
+        <input
+          type="text"
+          id="musubi-input"
+          maxlength="60"
+          placeholder="良縁や心願をご記入ください…"
+          value="良縁成就・大切な人といつまでも仲良く歩めますように"
+        />
+        <div class="modal-actions">
+          <button type="button" class="shrine-btn" data-close-modal>キャンセル</button>
+          <button type="button" id="btn-submit-musubi" class="primary-shrine-btn">結び所に結ぶ</button>
+        </div>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

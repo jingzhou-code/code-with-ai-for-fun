@@ -12,6 +12,7 @@
 | **复旦大学邯郸校区 3D 数字孪生** | [`./fudan-handan-3d/`](./fudan-handan-3d/) | [`fudan-handan-3d.zip`](./fudan-handan-3d/fudan-handan-3d.zip) | [`fudan-handan-3d-dist.zip`](./fudan-handan-3d/fudan-handan-3d-dist.zip) | 邯郸路 220 号 1,383 亩本部、北区、东区、南区全境（光华楼、相辉堂、子彬院、正大体育馆、燕园曦园等）`1:1` 三维漫游 |
 | **圣母大学（Notre Dame）3D 数字孪生** | [`./notre-dame-3d/`](./notre-dame-3d/) | [`notre-dame-3d.zip`](./notre-dame-3d/notre-dame-3d.zip) | [`notre-dame-3d-dist.zip`](./notre-dame-3d/notre-dame-3d-dist.zip) | 美国圣母大学校园（Golden Dome 主楼、圣心大教堂、双湖与体育场等）三维数字孪生漫游 |
 | **芝加哥大学（UChicago）3D 数字孪生** | [`./uchicago-3d-campus/`](./uchicago-3d-campus/) | [`uchicago-3d-campus.zip`](./uchicago-3d-campus/uchicago-3d-campus.zip) | [`uchicago-3d-campus-dist.zip`](./uchicago-3d-campus/uchicago-3d-campus-dist.zip) | 芝加哥大学英式哥特建筑群（Main Quadrangles、Rockefeller Chapel、Mansueto 玻璃穹顶图书馆等）`1:1` 三维漫游 |
+| **贵布祢总本宫 贵船神社 3D 全境复原** | [`./kifune-shrine-3d/`](./kifune-shrine-3d/) | [`kifune-shrine-3d.zip`](./kifune-shrine-3d/kifune-shrine-3d.zip) | [`kifune-shrine-3d-dist.zip`](./kifune-shrine-3d/kifune-shrine-3d-dist.zip) | 京都洛北水神总本宫全境复原：本宫 / 结社 / 奥宫三社、表参道 84 级石段 37 基春日灯笼、贵船川床、四季昼夜与水占神签 |
 
 ## 本地运行任一子项目
 

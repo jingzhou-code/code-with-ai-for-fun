@@ -1,0 +1,747 @@
+/* ==========================================================================
+   貴布禰総本宮 貴船神社 — Japanese Shrine Architectural Design System (Vanilla CSS)
+   Palette: Sumi Ink, Echizen Washi Ivory, Cinnabar Vermilion, Kiso Hinoki Gold
+   ========================================================================== */
+
+:root {
+  --sumi-deep: hsla(210, 18%, 7%, 0.84);
+  --sumi-panel: hsla(212, 16%, 10%, 0.76);
+  --sumi-hover: hsla(212, 14%, 17%, 0.88);
+  --washi-ivory: hsl(38, 33%, 93%);
+  --washi-paper: hsl(39, 36%, 95%);
+  --washi-muted: hsl(36, 15%, 72%);
+  --cinnabar: hsl(7, 71%, 46%);
+  --cinnabar-soft: hsla(7, 71%, 46%, 0.22);
+  --hinoki-gold: hsl(38, 52%, 63%);
+  --hinoki-border: hsla(38, 42%, 62%, 0.26);
+  --celadon: hsl(136, 26%, 68%);
+  --ink-dark: hsl(210, 16%, 14%);
+
+  --font-serif: "Shippori Mincho", "Noto Serif JP", "Noto Serif SC", "Songti SC", Georgia, serif;
+  --font-sans: "Inter", "Hiragino Sans", "PingFang SC", "Noto Sans JP", system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --transition-fast: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0b0e13;
+  color: var(--washi-ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#webgl-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 1;
+}
+
+#webgl-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+/* Loading Veil */
+#loading-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: radial-gradient(circle at center, #181d26 0%, #0a0d12 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#loading-veil.is-loaded {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.veil-crest {
+  width: 58px;
+  height: 58px;
+  border: 1.5px solid var(--hinoki-gold);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--hinoki-gold);
+  letter-spacing: 0.06em;
+}
+
+.veil-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--washi-ivory);
+}
+
+.veil-sub {
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+  color: var(--washi-muted);
+}
+
+/* HUD Shell */
+#hud-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 20px;
+  transition: opacity 0.35s ease;
+}
+
+body.hud-hidden .hud-fadeable {
+  opacity: 0;
+  pointer-events: none !important;
+}
+
+body.hud-hidden .atmosphere-dock .hud-fadeable {
+  display: none;
+}
+
+/* Top Header Bar */
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.brand-plaque {
+  pointer-events: auto;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-left: 3px solid var(--cinnabar);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+}
+
+.brand-plaque h1 {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--washi-ivory);
+  line-height: 1.25;
+}
+
+.brand-plaque p {
+  margin-top: 3px;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--washi-muted);
+}
+
+.atmosphere-dock {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-right: 8px;
+  border-right: 1px solid hsla(38, 25%, 65%, 0.18);
+}
+
+.control-group:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+
+.shrine-btn {
+  pointer-events: auto;
+  appearance: none;
+  background: transparent;
+  color: var(--washi-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.shrine-btn:hover {
+  background: var(--sumi-hover);
+  color: var(--washi-ivory);
+}
+
+.shrine-btn.is-active {
+  background: var(--cinnabar-soft);
+  color: var(--washi-ivory);
+  border-color: hsla(7, 72%, 56%, 0.65);
+}
+
+/* Middle Layer: Lore Card (Left) + Minimap & Sacred Rituals (Right) */
+.middle-layer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+  margin: 12px 0;
+  min-height: 0;
+}
+
+.lore-card {
+  pointer-events: auto;
+  width: min(335px, 36vw);
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+  transition: opacity var(--transition-fast);
+}
+
+.lore-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lore-card h2 {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hinoki-gold);
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+}
+
+.lore-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--washi-muted);
+  margin-top: 2px;
+}
+
+.lore-body {
+  margin-top: 9px;
+  font-size: 12.5px;
+  line-height: 1.72;
+  color: var(--washi-ivory);
+  opacity: 0.92;
+}
+
+.lore-card.is-collapsed .lore-body,
+.lore-card.is-collapsed .lore-sub {
+  display: none;
+}
+
+.lore-mini-btn {
+  background: transparent;
+  border: 1px solid hsla(38, 35%, 65%, 0.28);
+  color: var(--washi-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.lore-mini-btn:hover {
+  color: var(--washi-ivory);
+  border-color: var(--hinoki-gold);
+}
+
+/* Right Column: Interactive Valley Minimap + Sacred Ritual Action Buttons */
+.right-dock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.minimap-card {
+  pointer-events: auto;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  width: 132px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.38);
+}
+
+.minimap-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-serif);
+  font-size: 11px;
+  color: var(--hinoki-gold);
+  margin-bottom: 5px;
+  letter-spacing: 0.06em;
+}
+
+#minimap-canvas {
+  display: block;
+  width: 114px;
+  height: 186px;
+  border-radius: 3px;
+  border: 1px solid hsla(38, 30%, 60%, 0.22);
+  cursor: pointer;
+}
+
+.ritual-stack {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 176px;
+}
+
+.ritual-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  color: var(--washi-ivory);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  padding: 8px 11px;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.ritual-action-btn:hover {
+  transform: translateX(-2px);
+  background: var(--sumi-hover);
+  border-color: var(--hinoki-gold);
+}
+
+.ritual-badge {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--hinoki-gold);
+}
+
+/* Bottom Dock: Navigation Modes + 12 Curated Camera Presets */
+.bottom-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nav-mode-bar {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.controls-hint {
+  font-size: 11.5px;
+  color: var(--washi-muted);
+  background: hsla(210, 18%, 8%, 0.66);
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsla(38, 30%, 60%, 0.16);
+}
+
+.preset-strip {
+  pointer-events: auto;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 7px 8px;
+  background: var(--sumi-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-md);
+  scrollbar-width: thin;
+  scrollbar-color: var(--hinoki-border) transparent;
+}
+
+.preset-chip {
+  appearance: none;
+  background: hsla(215, 16%, 15%, 0.72);
+  border: 1px solid hsla(38, 30%, 60%, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--washi-ivory);
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.preset-chip:hover {
+  background: var(--sumi-hover);
+  border-color: var(--hinoki-gold);
+}
+
+.preset-chip.is-active {
+  background: var(--cinnabar-soft);
+  border-color: var(--cinnabar);
+}
+
+.preset-zone {
+  font-family: var(--font-serif);
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: hsla(38, 45%, 60%, 0.16);
+  color: var(--hinoki-gold);
+}
+
+.preset-name {
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+/* Proximity Interactive Prompt & Toast */
+.proximity-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 124px;
+  transform: translateX(-50%) translateY(10px);
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  background: hsla(10, 58%, 26%, 0.9);
+  color: var(--washi-ivory);
+  border: 1px solid var(--hinoki-gold);
+  border-radius: var(--radius-md);
+  padding: 9px 18px;
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.proximity-prompt.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.shrine-toast {
+  position: fixed;
+  top: 78px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 45;
+  background: var(--sumi-deep);
+  border: 1px solid var(--hinoki-gold);
+  color: var(--washi-ivory);
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.shrine-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Sacred Modals (Mizuura-mikuji, Goshuincho, Musubibumi) */
+.shrine-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(6, 9, 14, 0.72);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.shrine-modal.is-open {
+  display: flex;
+}
+
+.modal-card {
+  background: #14181f;
+  border: 1px solid var(--hinoki-border);
+  border-top: 3px solid var(--cinnabar);
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-head h3 {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  color: var(--hinoki-gold);
+  letter-spacing: 0.08em;
+}
+
+.modal-desc {
+  font-size: 12.5px;
+  color: var(--washi-muted);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+#mizuura-canvas {
+  display: block;
+  margin: 0 auto 14px;
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hinoki-border);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.primary-shrine-btn {
+  background: var(--cinnabar);
+  color: var(--washi-ivory);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.primary-shrine-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* Sansha-Mairi Goshuincho Accordion Pages */
+.goshuin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.goshuin-page {
+  background: #1c2028;
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goshuin-order {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: var(--hinoki-gold);
+  text-align: center;
+}
+
+.goshuin-sheet {
+  position: relative;
+  height: 196px;
+  background: var(--washi-paper);
+  color: var(--ink-dark);
+  border-radius: 3px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.vermilion-seal {
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border: 2.5px solid rgba(202, 42, 28, 0.76);
+  color: rgba(202, 42, 28, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  font-family: var(--font-serif);
+  font-size: 10px;
+}
+
+.vermilion-seal strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.goshuin-calligraphy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-serif);
+  color: #141414;
+}
+
+.goshuin-main {
+  writing-mode: vertical-rl;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.goshuin-sub,
+.goshuin-date {
+  font-size: 10.5px;
+  color: #3a3a3a;
+}
+
+.goshuin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #7c7a72;
+  font-family: var(--font-serif);
+  text-align: center;
+}
+
+.goshuin-blessing {
+  font-size: 11px;
+  color: var(--washi-muted);
+  text-align: center;
+}
+
+.goshuin-pray-btn {
+  background: hsla(7, 65%, 45%, 0.22);
+  border: 1px solid hsla(7, 65%, 52%, 0.55);
+  color: var(--washi-ivory);
+  border-radius: 3px;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+/* Musubibumi Form */
+.musubi-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.musubi-preset-item {
+  text-align: left;
+  background: hsla(136, 25%, 55%, 0.12);
+  border: 1px solid hsla(136, 28%, 62%, 0.3);
+  color: var(--celadon);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.musubi-preset-item:hover {
+  background: hsla(136, 25%, 55%, 0.22);
+}
+
+#musubi-input {
+  width: 100%;
+  background: #0f1318;
+  border: 1px solid var(--hinoki-border);
+  border-radius: var(--radius-sm);
+  color: var(--washi-ivory);
+  padding: 10px 12px;
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 860px) {
+  .goshuin-grid {
+    grid-template-columns: 1fr;
+  }
+  .lore-card {
+    width: 245px;
+  }
+  .controls-hint {
+    display: none;
+  }
+}
