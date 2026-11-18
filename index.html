@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>复旦大学江湾校区 · 三维数字孪生漫游 | Fudan University Jiangwan Campus 3D</title>
+  <meta
+    name="description"
+    content="基于 Three.js 构建的复旦大学江湾校区（淞沪路2005号）1600亩全尺寸三维数字孪生系统，完整还原李兆基图书馆、廖凯原法学楼、智华楼桥洞、行政会议中心、日湖月湖水系、北区理科与交叉学科楼群及江湾生活园区。"
+  />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div id="canvas-container" aria-label="复旦大学江湾校区三维场景画布"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-inner">
+      <div class="crest-ring" aria-hidden="true">
+        <span class="crest-char">復旦</span>
+      </div>
+      <p class="loading-kicker">SONG HU RD. 2005 · SHANGHAI</p>
+      <h2 class="loading-title">复旦大学 · 江湾校区</h2>
+      <p class="loading-motto">博学而笃志 · 切问而近思</p>
+      <div class="loading-bar-track">
+        <div id="loading-bar-fill" class="loading-bar-fill"></div>
+      </div>
+      <p id="loading-stage" class="loading-stage">正在构建五经七纬道路与日月湖水系…</p>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header id="hud-header" class="hud-panel">
+    <div class="brand-block">
+      <div class="brand-seal" aria-hidden="true">旦</div>
+      <div>
+        <h1 class="campus-title">复旦大学（江湾校区）</h1>
+        <p class="campus-subtitle">淞沪路2005号 · 1600亩欧式新古典主义与现代科研校园 1:1 实景还原</p>
+      </div>
+    </div>
+
+    <nav class="camera-mode-bar" aria-label="视角漫游模式">
+      <button id="mode-orbit-btn" class="mode-btn active" data-mode="orbit" title="自由旋转缩放俯瞰全校 (数字键 1)">
+        沙盘鸟瞰
+      </button>
+      <button id="mode-walk-btn" class="mode-btn" data-mode="walk" title="1.72米人眼高度漫步校园 (数字键 2)">
+        第一人称漫步
+      </button>
+      <button id="mode-bike-btn" class="mode-btn" data-mode="bike" title="纬七路与经二路追风单车视角 (数字键 3)">
+        单车骑行
+      </button>
+      <button id="mode-drone-btn" class="mode-btn" data-mode="drone" title="无人机自动环校航拍巡礼 (数字键 4)">
+        航拍巡礼
+      </button>
+    </nav>
+
+    <div class="header-actions">
+      <button id="toggle-labels-btn" class="icon-chip active" title="显示或隐藏三维建筑铭牌 (快捷键 L)">
+        建筑铭牌
+      </button>
+      <button id="toggle-ui-btn" class="icon-chip" title="纯净全屏观景模式 (快捷键 H)">
+        纯净视图
+      </button>
+    </div>
+  </header>
+
+  <!-- Left Landmark Directory Sidebar -->
+  <aside id="landmark-sidebar" class="hud-panel" aria-label="校区建筑与景观导览目录">
+    <div class="sidebar-header">
+      <div class="sidebar-title-row">
+        <span class="section-label">江湾空间导览</span>
+        <span id="landmark-count-badge" class="count-badge">34 处地标</span>
+      </div>
+      <div class="search-box">
+        <input
+          id="landmark-search-input"
+          type="search"
+          placeholder="搜索楼宇、校门、湖泊、院系…"
+          autocomplete="off"
+        />
+      </div>
+      <div id="category-tabs" class="category-tabs" role="tablist">
+        <button id="cat-all-btn" class="cat-tab active" data-cat="all">全部</button>
+        <button id="cat-core-btn" class="cat-tab" data-cat="core">中轴古典群</button>
+        <button id="cat-science-btn" class="cat-tab" data-cat="science">北区理科群</button>
+        <button id="cat-life-btn" class="cat-tab" data-cat="life">生活与运动</button>
+        <button id="cat-landscape-btn" class="cat-tab" data-cat="landscape">校门与水系</button>
+      </div>
+    </div>
+    <div id="landmark-list" class="landmark-list"></div>
+  </aside>
+
+  <!-- Right Controls: Environment + Selected Building Inspector + Interactive Minimap -->
+  <aside id="right-dock" aria-label="环境调控与实时小地图">
+    <!-- Atmosphere & Season Card -->
+    <section id="env-panel" class="hud-panel env-panel">
+      <div class="env-row-head">
+        <span class="section-label">光影时刻</span>
+        <span id="clock-readout" class="clock-readout">15:30 · 午后晴光</span>
+      </div>
+      <input
+        id="time-slider"
+        type="range"
+        min="5.5"
+        max="22.5"
+        step="0.1"
+        value="15.5"
+        aria-label="校园时间滑块"
+      />
+      <div class="preset-pills" id="time-presets">
+        <button id="time-morning-btn" class="pill-btn" data-hour="7.8">晨曦</button>
+        <button id="time-noon-btn" class="pill-btn" data-hour="12.5">正午</button>
+        <button id="time-afternoon-btn" class="pill-btn active" data-hour="15.5">晴午</button>
+        <button id="time-sunset-btn" class="pill-btn" data-hour="17.8">江湾落日</button>
+        <button id="time-night-btn" class="pill-btn" data-hour="20.5">星夜灯火</button>
+      </div>
+
+      <div class="env-row-head season-head">
+        <span class="section-label">四时风物</span>
+        <span id="season-desc" class="muted-meta">银杏大道 · 望道秋色</span>
+      </div>
+      <div class="preset-pills" id="season-presets">
+        <button id="season-spring-btn" class="pill-btn" data-season="spring">春樱海棠</button>
+        <button id="season-summer-btn" class="pill-btn" data-season="summer">盛夏草原</button>
+        <button id="season-autumn-btn" class="pill-btn active" data-season="autumn">金秋银杏</button>
+        <button id="season-winter-btn" class="pill-btn" data-season="winter">冬日朗晴</button>
+      </div>
+    </section>
+
+    <!-- Building Inspector Card -->
+    <section id="inspector-card" class="hud-panel inspector-card hidden" aria-live="polite">
+      <div class="inspector-top">
+        <div>
+          <span id="inspector-category" class="inspector-tag">中轴古典建筑</span>
+          <h2 id="inspector-title" class="inspector-title">廖凯原法学楼</h2>
+          <p id="inspector-en" class="inspector-en">Leo KoGuan Law Building</p>
+        </div>
+        <button id="inspector-close-btn" class="close-btn" aria-label="关闭详情面板">×</button>
+      </div>
+      <div class="inspector-metrics" id="inspector-metrics"></div>
+      <p id="inspector-desc" class="inspector-desc"></p>
+      <div class="inspector-actions">
+        <button id="inspector-fly-btn" class="action-btn primary">近景环绕审视</button>
+        <button id="inspector-walk-btn" class="action-btn">在门前漫步</button>
+      </div>
+    </section>
+
+    <!-- Interactive 2D Radar Minimap -->
+    <section id="minimap-panel" class="hud-panel minimap-panel">
+      <div class="minimap-header">
+        <span class="section-label">校园实时导览</span>
+        <span id="coords-readout" class="coords-readout">韶华大道 · 中央大草坪</span>
+      </div>
+      <div class="minimap-canvas-wrap">
+        <canvas id="minimap-canvas" width="248" height="296" title="点击地图任意位置快速传送"></canvas>
+        <div class="compass-badge" title="校园路网正东临淞沪路（地理北偏西约33°）">北 ↑</div>
+      </div>
+      <p class="minimap-hint">点击地图任意区域瞬移 · 滚轮缩放 · 右键平移</p>
+    </section>
+  </aside>
+
+  <!-- Drone Tour / Walk Hint Banner -->
+  <div id="tour-caption" class="hud-panel tour-caption hidden" aria-live="polite">
+    <span id="tour-step-badge" class="tour-step-badge">巡礼 01 / 10</span>
+    <div class="tour-text-wrap">
+      <strong id="tour-spot-name">一号门与韶华大道</strong>
+      <p id="tour-spot-quote">“既蕴含着新古典浪漫主义的优雅，又散发着现代科研殿堂的气息。”</p>
+    </div>
+    <button id="tour-next-btn" class="pill-btn">下一站 →</button>
+  </div>
+
+  <!-- Bottom Controls Help Bar -->
+  <footer id="controls-bar" class="hud-panel controls-bar">
+    <span id="controls-hint-text">
+      <strong>操作指南：</strong>左键拖拽旋转 · 右键/双指平移 · 滚轮远近缩放 · <strong>WASD / 方向键</strong>移动 · 点击任意建筑查看档案 · 快捷键 <strong>1-4</strong> 切换漫游模式
+    </span>
+    <span id="perf-readout" class="perf-readout">1600 亩全境加载完成</span>
+  </footer>
+
+  <!-- Crosshair for First-Person Walk / Bike Mode -->
+  <div id="walk-crosshair" class="walk-crosshair hidden" aria-hidden="true"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
