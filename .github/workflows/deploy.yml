@@ -1,4 +1,4 @@
-name: Build and Package Fudan 3D Campuses
+name: Build and Package 3D Campuses
 
 on:
   push:
@@ -31,6 +31,7 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             fudan-handan-3d/package-lock.json
+            notre-dame-3d/package-lock.json
 
       - name: Install & build Jiangwan Campus (root)
         run: |
@@ -59,6 +60,23 @@ jobs:
         run: |
           mkdir -p ./dist/fudan-handan-3d
           cp -r ./fudan-handan-3d/dist/* ./dist/fudan-handan-3d/
+
+      - name: Install & build University of Notre Dame (notre-dame-3d)
+        working-directory: ./notre-dame-3d
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload University of Notre Dame build bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notre-dame-3d-dist
+          path: './notre-dame-3d/dist'
+
+      - name: Bundle University of Notre Dame under /notre-dame-3d for GitHub Pages
+        run: |
+          mkdir -p ./dist/notre-dame-3d
+          cp -r ./notre-dame-3d/dist/* ./dist/notre-dame-3d/
 
       - name: Check GitHub Pages configuration
         id: check_pages
