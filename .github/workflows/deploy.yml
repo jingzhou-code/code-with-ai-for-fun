@@ -28,94 +28,46 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: |
-            kiyomizu-dera-3d/package-lock.json
-            fudan-jiangwan-3d/package-lock.json
-            fudan-handan-3d/package-lock.json
-            notre-dame-3d/package-lock.json
+          cache-dependency-path: '*/*package-lock.json'
 
-      - name: Install & build Kiyomizu-dera (kiyomizu-dera-3d)
-        working-directory: ./kiyomizu-dera-3d
+      - name: Build all subdirectory 3D projects and assemble bundle
         run: |
-          npm ci
-          npm run build
-
-      - name: Upload Kiyomizu-dera build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: kiyomizu-dera-3d-dist
-          path: './kiyomizu-dera-3d/dist'
-
-      - name: Install & build Fudan Jiangwan Campus (fudan-jiangwan-3d)
-        working-directory: ./fudan-jiangwan-3d
-        run: |
-          npm ci
-          npm run build
-
-      - name: Upload Jiangwan Campus build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fudan-jiangwan-3d-dist
-          path: './fudan-jiangwan-3d/dist'
-
-      - name: Install & build Fudan Handan Campus (fudan-handan-3d)
-        working-directory: ./fudan-handan-3d
-        run: |
-          npm ci
-          npm run build
-
-      - name: Upload Handan Campus build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fudan-handan-3d-dist
-          path: './fudan-handan-3d/dist'
-
-      - name: Install & build University of Notre Dame (notre-dame-3d)
-        working-directory: ./notre-dame-3d
-        run: |
-          npm ci
-          npm run build
-
-      - name: Upload University of Notre Dame build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: notre-dame-3d-dist
-          path: './notre-dame-3d/dist'
-
-      - name: Assemble combined Pages bundle
-        run: |
-          mkdir -p ./dist/kiyomizu-dera-3d ./dist/fudan-jiangwan-3d ./dist/fudan-handan-3d ./dist/notre-dame-3d
-          cp -r ./kiyomizu-dera-3d/dist/* ./dist/kiyomizu-dera-3d/
-          cp -r ./fudan-jiangwan-3d/dist/* ./dist/fudan-jiangwan-3d/
-          cp -r ./fudan-handan-3d/dist/* ./dist/fudan-handan-3d/
-          cp -r ./notre-dame-3d/dist/* ./dist/notre-dame-3d/
-          cat > ./dist/index.html <<'EOF'
+          mkdir -p ./dist
+          LINKS=""
+          for dir in */; do
+            proj="${dir%/}"
+            if [ -f "$proj/package.json" ]; then
+              echo "=== Building $proj ==="
+              (cd "$proj" && npm ci && npm run build)
+              mkdir -p "./dist/$proj"
+              cp -r "$proj/dist/"* "./dist/$proj/"
+              LINKS="${LINKS}<a href=\"./${proj}/\">${proj}</a>"
+            fi
+          done
+          cat > ./dist/index.html <<EOF
           <!DOCTYPE html>
           <html lang="zh-CN">
           <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Code with AI for Fun — 3D 作品导航</title>
+            <title>Code with AI for Fun — 3D Projects</title>
             <style>
               body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #11100e; color: #f2ece1; font-family: system-ui, sans-serif; }
               main { max-width: 680px; width: 90%; padding: 2rem; }
-              h1 { font-weight: 600; letter-spacing: 0.06em; margin-bottom: 1.5rem; }
-              a { display: block; padding: 1.1rem 1.3rem; margin-bottom: 0.9rem; border-radius: 8px; border: 1px solid rgba(242,236,225,0.18); background: rgba(255,255,255,0.04); color: #f2ece1; text-decoration: none; transition: border-color 0.2s; }
+              h1 { font-weight: 600; margin-bottom: 1.5rem; }
+              a { display: block; padding: 1rem 1.25rem; margin-bottom: 0.75rem; border-radius: 8px; border: 1px solid rgba(242,236,225,0.18); background: rgba(255,255,255,0.04); color: #f2ece1; text-decoration: none; }
               a:hover { border-color: #d4a857; }
-              span { display: block; font-size: 0.85rem; color: #aba293; margin-top: 0.3rem; }
             </style>
           </head>
-          <body>
-            <main>
-              <h1>Code with AI for Fun · 3D 作品集</h1>
-              <a href="./kiyomizu-dera-3d/">音羽山 清水寺 — Three.js 全境古建筑与地形数字复原<span>京都世界文化遗产全伽蓝 · 139 根榉木无钉悬造舞台 · 四季昼夜</span></a>
-              <a href="./fudan-jiangwan-3d/">复旦大学（江湾校区）Three.js 三维数字孪生<span>1,600 亩新古典主义建筑群与日月湖水系</span></a>
-              <a href="./fudan-handan-3d/">复旦大学（邯郸校区）Three.js 三维数字孪生<span>1,383 亩本部、北区、东区、南区全境漫游</span></a>
-              <a href="./notre-dame-3d/">圣母大学（University of Notre Dame）Three.js 三维数字孪生<span>Golden Dome 主楼、圣心大教堂与双湖校园漫游</span></a>
-            </main>
-          </body>
+          <body><main><h1>Code with AI for Fun · 3D Projects</h1>${LINKS}</main></body>
           </html>
           EOF
+
+      - name: Upload combined dist bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-3d-projects-dist
+          path: './dist'
 
       - name: Check GitHub Pages configuration
         id: check_pages

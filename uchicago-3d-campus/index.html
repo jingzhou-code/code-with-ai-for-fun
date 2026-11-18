@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The University of Chicago 3D Campus — 芝加哥大学全景三维建筑复原</title>
+    <meta
+      name="description"
+      content="基于 Three.js 构建的芝加哥大学海德公园（Hyde Park）全校区三维建筑复原：涵盖主四方院哥特群落、哈珀纪念图书馆、洛克菲勒大教堂、曼苏托玻璃穹顶、赖特罗比住宅、沙里宁法学院、密斯社工学院及奥姆斯特德中途公园大道。"
+    />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+  </head>
+  <body>
+    <canvas id="viewport-canvas" aria-label="University of Chicago 3D Campus Viewport"></canvas>
+    <div id="world-labels" aria-hidden="true"></div>
+
+    <main id="hud-root">
+      <!-- Left Masthead & Searchable Architectural Directory Column -->
+      <div class="left-column">
+        <div class="hud-surface masthead">
+          <div class="masthead-crest">CRESCAT SCIENTIA · VITA EXCOLATUR · EST. 1890</div>
+          <h1>芝加哥大学 · UChicago</h1>
+          <p class="masthead-sub" id="campus-stats-line">
+            Hyde Park 全校区 1:1 街区轴网复原 · 55th–61st St
+          </p>
+        </div>
+
+        <aside id="directory-panel" class="hud-surface directory-panel" aria-label="Campus Directory">
+          <div class="dir-header">
+            <input
+              id="landmark-search"
+              class="dir-search"
+              type="search"
+              placeholder="搜索建筑 / 建筑师 / 街道 (如 Harper, Wright)..."
+              aria-label="搜索校园地标"
+            />
+            <div id="zone-tabs" class="zone-tabs"></div>
+          </div>
+          <div id="landmark-list" class="landmark-list"></div>
+        </aside>
+      </div>
+
+      <!-- Top-Right Navigation Mode Bar -->
+      <nav class="hud-surface mode-toolbar" aria-label="Exploration Controls">
+        <button id="btn-toggle-dir" class="hud-btn is-active" title="展开/收起建筑名录">
+          建筑名录
+        </button>
+        <span class="hud-divider"></span>
+        <button id="btn-mode-orbit" class="hud-btn is-active" data-mode="orbit">
+          鸟瞰漫游 Orbit
+        </button>
+        <button id="btn-mode-walk" class="hud-btn" data-mode="walk">
+          第一人称漫步 Walk
+        </button>
+        <button id="btn-mode-tour" class="hud-btn" data-mode="tour">
+          导览巡礼 Tour
+        </button>
+        <span class="hud-divider"></span>
+        <button id="btn-reset-view" class="hud-btn" title="回到全校全景视角">
+          全景复位
+        </button>
+        <button id="btn-toggle-pins" class="hud-btn is-active" title="显示/隐藏3D建筑铭牌">
+          地标铭牌
+        </button>
+        <button id="btn-hide-hud" class="hud-btn" title="纯净截图模式 (快捷键 H)">
+          纯净视图 [H]
+        </button>
+      </nav>
+
+      <!-- Guided Tour Narration Banner -->
+      <section id="tour-banner" class="hud-surface tour-banner" aria-live="polite">
+        <span id="tour-step-badge" class="tour-step-badge">1 / 12</span>
+        <span id="tour-caption" class="tour-caption">正在巡礼主四方院…</span>
+        <button id="btn-tour-prev" class="mini-btn">上一站</button>
+        <button id="btn-tour-next" class="mini-btn">下一站</button>
+      </section>
+
+      <!-- First-Person Walk Hint -->
+      <div id="walk-hint" class="hud-surface walk-hint">
+        漫步模式：按住鼠标左键拖动环顾四周 · WASD / 方向键行走 · 按住 Shift 加速奔跑
+      </div>
+
+      <!-- Bottom-Left Time of Day & 4-Seasons Control -->
+      <section class="hud-surface env-panel" aria-label="Time and Season Controls">
+        <div class="env-row">
+          <span class="env-label">太阳时刻 SOLAR</span>
+          <input id="time-slider" type="range" min="0" max="24" step="0.1" value="16.6" />
+          <span id="time-readout" class="time-readout">16:36</span>
+        </div>
+        <div class="env-row">
+          <div class="chip-group" id="time-presets">
+            <button class="mini-btn" data-hour="6.6">晨曦 06:36</button>
+            <button class="mini-btn" data-hour="12.5">正午 12:30</button>
+            <button class="mini-btn is-active" data-hour="16.6">金秋斜阳 16:36</button>
+            <button class="mini-btn" data-hour="21.5">深夜苦读 21:30</button>
+          </div>
+        </div>
+        <div class="env-row">
+          <span class="env-label">海德公园四季</span>
+          <div class="chip-group" id="season-presets">
+            <button class="mini-btn is-active" data-season="autumn">深秋红叶</button>
+            <button class="mini-btn" data-season="winter">风城瑞雪</button>
+            <button class="mini-btn" data-season="spring">春樱植物园</button>
+            <button class="mini-btn" data-season="summer">盛夏绿茵</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom-Right Architectural Dossier + Interactive Radar Minimap -->
+      <div class="right-stack">
+        <article id="dossier-card" class="hud-surface dossier-card" aria-live="polite">
+          <div class="dossier-top">
+            <div>
+              <h2 id="dossier-zh" class="dossier-zh">哈珀纪念图书馆</h2>
+              <div id="dossier-en" class="dossier-en">William Rainey Harper Memorial Library</div>
+            </div>
+            <button id="btn-close-dossier" class="close-btn" aria-label="关闭详情">×</button>
+          </div>
+          <div class="dossier-meta">
+            <div>
+              <span class="meta-key">落成年份 · Year</span>
+              <span id="dossier-year" class="meta-val">1912</span>
+            </div>
+            <div>
+              <span class="meta-key">建筑风格 · Style</span>
+              <span id="dossier-style" class="meta-val">Collegiate Gothic</span>
+            </div>
+            <div>
+              <span class="meta-key">建筑师 · Architect</span>
+              <span id="dossier-arch" class="meta-val">Shepley, Rutan & Coolidge</span>
+            </div>
+            <div>
+              <span class="meta-key">街区坐标 · Address</span>
+              <span id="dossier-addr" class="meta-val">1116 E. 59th St.</span>
+            </div>
+          </div>
+          <p id="dossier-desc" class="dossier-desc"></p>
+        </article>
+
+        <section class="hud-surface minimap-box" aria-label="Campus Radar Map">
+          <div class="minimap-header">
+            <span>HYDE PARK RADAR (点击瞬移)</span>
+            <span id="coord-readout">58TH & ELLIS</span>
+          </div>
+          <canvas id="minimap-canvas" width="210" height="195"></canvas>
+        </section>
+      </div>
+    </main>
+
+    <button id="restore-hud-btn" class="hud-surface hud-btn">显示界面 [H]</button>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

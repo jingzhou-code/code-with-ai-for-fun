@@ -1,6 +1,6 @@
 # Code with AI for Fun — Three.js 3D 数字复原与数字孪生作品集
 
-本仓库以独立子目录收纳各 Three.js 三维项目，每个子目录内均附带 **完整项目压缩包（`<project>.zip`，含源码与 `dist/`）** 及 **纯静态部署包（`<project>-dist.zip`）**，可直接下载使用。
+本仓库以独立子目录收纳各 Three.js 三维项目，每个子目录内均附带 **完整项目压缩包（`<project>.zip`，含源码与 `dist/`）** 及 **纯静态部署包（`<project>-dist.zip`）**，可直接作为网盘归档下载使用。
 
 ## 项目目录与一键下载索引
 
@@ -10,6 +10,7 @@
 | **复旦大学江湾校区 3D 数字孪生** | [`./fudan-jiangwan-3d/`](./fudan-jiangwan-3d/) | [`fudan-jiangwan-3d.zip`](./fudan-jiangwan-3d/fudan-jiangwan-3d.zip) | [`fudan-jiangwan-3d-dist.zip`](./fudan-jiangwan-3d/fudan-jiangwan-3d-dist.zip) | 淞沪路 2005 号 1,600 亩新古典主义建筑群（廖凯原法学楼、李兆基图书馆、智华楼等）与日月湖水系 `1:1` 三维漫游 |
 | **复旦大学邯郸校区 3D 数字孪生** | [`./fudan-handan-3d/`](./fudan-handan-3d/) | [`fudan-handan-3d.zip`](./fudan-handan-3d/fudan-handan-3d.zip) | [`fudan-handan-3d-dist.zip`](./fudan-handan-3d/fudan-handan-3d-dist.zip) | 邯郸路 220 号 1,383 亩本部、北区、东区、南区全境（光华楼、相辉堂、子彬院、正大体育馆、燕园曦园等）`1:1` 三维漫游 |
 | **圣母大学（Notre Dame）3D 数字孪生** | [`./notre-dame-3d/`](./notre-dame-3d/) | [`notre-dame-3d.zip`](./notre-dame-3d/notre-dame-3d.zip) | [`notre-dame-3d-dist.zip`](./notre-dame-3d/notre-dame-3d-dist.zip) | 美国圣母大学校园（Golden Dome 主楼、圣心大教堂、双湖与体育场等）三维数字孪生漫游 |
+| **芝加哥大学（UChicago）3D 数字孪生** | [`./uchicago-3d-campus/`](./uchicago-3d-campus/) | [`uchicago-3d-campus.zip`](./uchicago-3d-campus/uchicago-3d-campus.zip) | [`uchicago-3d-campus-dist.zip`](./uchicago-3d-campus/uchicago-3d-campus-dist.zip) | 芝加哥大学英式哥特建筑群（Main Quadrangles、Rockefeller Chapel、Mansueto 玻璃穹顶图书馆等）`1:1` 三维漫游 |
 
 ## 本地运行任一子项目
 
@@ -20,4 +21,4 @@ npm install
 npm run dev
 ```
 
-若仅需本地直接打开静态网页，解压 `<project>-dist.zip` 后通过任意静态服务器（如 `npx serve dist`）即可运行。
+若仅需本地直接运行静态网页，解压 `<project>-dist.zip` 后通过任意静态服务器（如 `npx serve dist`）即可打开预览。
