@@ -1,4 +1,4 @@
-name: Build and Package Fudan 3D Campuses
+name: Build and Package 3D Projects
 
 on:
   push:
@@ -29,36 +29,60 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: |
-            package-lock.json
+            kiyomizu-dera-3d/package-lock.json
+            fudan-jiangwan-3d/package-lock.json
             fudan-handan-3d/package-lock.json
 
-      - name: Install & build Jiangwan Campus (root)
+      - name: Install & build Kiyomizu-dera (kiyomizu-dera-3d)
+        working-directory: ./kiyomizu-dera-3d
         run: |
           npm ci
           npm run build
 
-      - name: Upload Jiangwan Campus build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fudan-jiangwan-3d-dist
-          path: './dist'
+      - name: Install & build Fudan Jiangwan Campus (fudan-jiangwan-3d)
+        working-directory: ./fudan-jiangwan-3d
+        run: |
+          npm ci
+          npm run build
 
-      - name: Install & build Handan Campus (fudan-handan-3d)
+      - name: Install & build Fudan Handan Campus (fudan-handan-3d)
         working-directory: ./fudan-handan-3d
         run: |
           npm ci
           npm run build
 
-      - name: Upload Handan Campus build bundle artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fudan-handan-3d-dist
-          path: './fudan-handan-3d/dist'
-
-      - name: Bundle Handan Campus under /fudan-handan-3d for GitHub Pages
+      - name: Assemble combined Pages bundle
         run: |
-          mkdir -p ./dist/fudan-handan-3d
+          mkdir -p ./dist/kiyomizu-dera-3d ./dist/fudan-jiangwan-3d ./dist/fudan-handan-3d
+          cp -r ./kiyomizu-dera-3d/dist/* ./dist/kiyomizu-dera-3d/
+          cp -r ./fudan-jiangwan-3d/dist/* ./dist/fudan-jiangwan-3d/
           cp -r ./fudan-handan-3d/dist/* ./dist/fudan-handan-3d/
+          cat > ./dist/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Code with AI for Fun — 3D 作品导航</title>
+            <style>
+              body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #11100e; color: #f2ece1; font-family: system-ui, sans-serif; }
+              main { max-width: 680px; width: 90%; padding: 2rem; }
+              h1 { font-weight: 600; letter-spacing: 0.06em; margin-bottom: 1.5rem; }
+              a { display: block; padding: 1.1rem 1.3rem; margin-bottom: 0.9rem; border-radius: 8px; border: 1px solid rgba(242,236,225,0.18); background: rgba(255,255,255,0.04); color: #f2ece1; text-decoration: none; transition: border-color 0.2s; }
+              a:hover { border-color: #d4a857; }
+              span { display: block; font-size: 0.85rem; color: #aba293; margin-top: 0.3rem; }
+            </style>
+          </head>
+          <body>
+            <main>
+              <h1>Code with AI for Fun · 3D 作品集</h1>
+              <a href="./kiyomizu-dera-3d/">音羽山 清水寺 — Three.js 全境古建筑与地形数字复原<span>京都世界文化遗产全伽蓝 · 139 根榉木无钉悬造舞台 · 四季昼夜</span></a>
+              <a href="./fudan-jiangwan-3d/">复旦大学（江湾校区）Three.js 三维数字孪生<span>1,600 亩新古典主义建筑群与日月湖水系</span></a>
+              <a href="./fudan-handan-3d/">复旦大学（邯郸校区）Three.js 三维数字孪生<span>1,383 亩本部、北区、东区、南区全境漫游</span></a>
+            </main>
+          </body>
+          </html>
+          EOF
 
       - name: Check GitHub Pages configuration
         id: check_pages

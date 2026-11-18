@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>音羽山 清水寺 — Three.js 全境古建筑与地形数字复原</title>
+    <meta
+      name="description"
+      content="基于 Three.js 打造的京都世界文化遗产「音羽山 清水寺」全境 3D 数字复原：涵盖国宝本堂与 139 根榉木无钉悬造清水舞台、仁王门、三重塔、西门、钟楼、随求堂、经堂、田村堂、朝仓堂、轰门、地主神社、释迦堂、阿弥陀堂、奥之院、音羽之泷、成就院月之庭与子安塔，支持四季昼夜与悬造结构透视。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+  </head>
+  <body>
+    <main id="app-root" aria-label="音羽山清水寺三维数字复原">
+      <canvas id="temple-canvas"></canvas>
+
+      <!-- Loading Curtain -->
+      <section id="loading-screen" role="status" aria-live="polite">
+        <div class="loading-inner">
+          <p class="loading-kicker">世界文化遺産 · 古都京都の文化財</p>
+          <h1 class="loading-title">音羽山 清水寺</h1>
+          <p class="loading-subtitle">OTOWA-SAN KIYOMIZU-DERA · 1633 寛永再建伽藍 全境三维复原</p>
+          <div class="loading-progress-track">
+            <div id="loading-progress-bar" class="loading-progress-bar"></div>
+          </div>
+          <p id="loading-status-text" class="loading-status">正在构筑音羽山断崖与锦云溪地形…</p>
+        </div>
+      </section>
+
+      <!-- Top Header Bar -->
+      <header id="hud-header" class="hud-panel">
+        <div class="brand-block">
+          <span class="seal-mark" aria-hidden="true">清水</span>
+          <div>
+            <div class="brand-title-row">
+              <span class="brand-title">音羽山 清水寺</span>
+              <span class="brand-era">創建 宝亀九年 (778) · 現本堂 寛永十年 (1633)</span>
+            </div>
+            <p class="brand-caption" id="hud-atmosphere-label">錦秋 · 夕照日想観 · 全伽藍 18 処名所復原</p>
+          </div>
+        </div>
+
+        <nav class="top-actions" aria-label="探索模式与结构工具">
+          <div class="segmented-group" role="group" aria-label="视角模式">
+            <button id="mode-orbit-btn" class="seg-btn active" type="button" title="自由环绕俯瞰 (1)">
+              自在俯瞰
+            </button>
+            <button id="mode-walk-btn" class="seg-btn" type="button" title="第一人称参拜漫步 WASD (2)">
+              参拝漫歩
+            </button>
+            <button id="mode-tour-btn" class="seg-btn" type="button" title="电影级全境自动巡礼 (3)">
+              巡礼遊覧
+            </button>
+          </div>
+
+          <button id="xray-toggle-btn" class="action-btn" type="button" title="透视国宝本堂 139 根榉木悬造与六段通贯无钉结构 (X)">
+            <span>懸造透視</span>
+          </button>
+          <button id="bell-ring-btn" class="action-btn" type="button" title="撞响庆长十二年梵钟 (B)">
+            <span>撞鐘</span>
+          </button>
+          <button id="audio-toggle-btn" class="action-btn" type="button" title="开启/关闭音羽山环境音律 (M)">
+            <span id="audio-btn-label">山音: 静</span>
+          </button>
+          <button id="hud-hide-btn" class="action-btn icon-only" type="button" title="隐藏/显示界面 (H)">
+            <span>隠</span>
+          </button>
+        </nav>
+      </header>
+
+      <!-- Left Panel: Pilgrimage Landmarks Guide -->
+      <aside id="landmarks-drawer" class="hud-panel" aria-label="境内巡礼名所">
+        <div class="drawer-header">
+          <div>
+            <h2 class="drawer-title">境内巡礼案内</h2>
+            <p class="drawer-subtitle">点击名所飞往对应伽蓝视点</p>
+          </div>
+          <button id="drawer-collapse-btn" class="mini-btn" type="button" title="折叠列表">收起</button>
+        </div>
+        <div id="landmark-list" class="landmark-list" role="list"></div>
+      </aside>
+
+      <!-- Bottom-Left: Active Landmark Architectural Card -->
+      <article id="landmark-detail-card" class="hud-panel" aria-live="polite">
+        <div class="detail-badge-row">
+          <span id="detail-heritage-tag" class="heritage-tag">国宝 · NATIONAL TREASURE</span>
+          <span id="detail-year-tag" class="year-tag">寛永10年 (1633) 再建</span>
+        </div>
+        <h3 id="detail-title" class="detail-title">本堂・清水の舞台</h3>
+        <p id="detail-jp-reading" class="detail-reading">HONDŌ &amp; STAGE OF KIYOMIZU · 寄棟造・檜皮葺・懸造</p>
+        <p id="detail-description" class="detail-description">
+          矗立于音羽山断崖之上的国宝本堂，面阔36米、进深31米。向锦云溪悬挑而出的「清水舞台」距崖底约13米，由树龄四百年以上的榉木巨柱（舞台主柱18根、全堂床下共139根束柱）与六段纵横「通贯」以楔子咬合，未用一颗铁钉。
+        </p>
+        <div id="detail-metrics" class="detail-metrics"></div>
+      </article>
+
+      <!-- Bottom-Center: Season & Time-of-Day Controls -->
+      <section id="atmosphere-bar" class="hud-panel" aria-label="四季与昼夜光影控制">
+        <div class="season-selector" role="group" aria-label="四季切换">
+          <button class="season-btn" data-season="spring" type="button">春 · 桜雲</button>
+          <button class="season-btn" data-season="summer" type="button">夏 · 新緑</button>
+          <button class="season-btn active" data-season="autumn" type="button">秋 · 錦秋</button>
+          <button class="season-btn" data-season="winter" type="button">冬 · 雪化粧</button>
+        </div>
+
+        <div class="divider-v" aria-hidden="true"></div>
+
+        <div class="time-controls">
+          <div class="time-presets" role="group" aria-label="时刻预设">
+            <button class="time-btn" data-time="6.6" type="button">朝霧</button>
+            <button class="time-btn" data-time="13.0" type="button">晴昼</button>
+            <button class="time-btn active" data-time="17.15" type="button">夕照</button>
+            <button class="time-btn" data-time="20.5" type="button">夜間拝観</button>
+          </div>
+          <label class="time-slider-wrap" for="time-slider">
+            <span id="time-readout" class="time-readout">17:09</span>
+            <input id="time-slider" type="range" min="0" max="24" step="0.05" value="17.15" />
+          </label>
+        </div>
+      </section>
+
+      <!-- Bottom-Right: Interactive Precinct Minimap & Stats -->
+      <aside id="minimap-panel" class="hud-panel" aria-label="境内平面方位图">
+        <div class="minimap-header">
+          <span class="minimap-title">境内伽藍配置図</span>
+          <span id="fps-readout" class="fps-readout">西 ← 参道 · 奥の院 → 東</span>
+        </div>
+        <canvas id="minimap-canvas" width="236" height="176"></canvas>
+        <div class="controls-hint" id="controls-hint">
+          左键旋转 · 右键平移 · 滚轮缩放 · 点击建筑聚焦
+        </div>
+      </aside>
+
+      <!-- Walk Mode Pointer Lock Prompt -->
+      <div id="walk-overlay" class="walk-overlay hidden">
+        <p class="walk-prompt">参拝漫歩模式 · 点击画面锁定视角 · <strong>WASD</strong> 行走 · <strong>Shift</strong> 疾行 · <strong>Space</strong> 跃起 · <strong>ESC</strong> 退出锁定</p>
+      </div>
+
+      <!-- Floating HUD Restore Button when hidden -->
+      <button id="hud-restore-btn" class="hud-panel hidden" type="button" title="显示界面 (H)">
+        顕示界面 (H)
+      </button>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
