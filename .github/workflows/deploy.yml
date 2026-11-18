@@ -33,6 +33,7 @@ jobs:
             fudan-handan-3d/package-lock.json
             notre-dame-3d/package-lock.json
             uchicago-3d-campus/package-lock.json
+            jojakko-ji-3d/package-lock.json
 
       - name: Install & build Jiangwan Campus (root)
         run: |
@@ -95,6 +96,23 @@ jobs:
         run: |
           mkdir -p ./dist/uchicago-3d-campus
           cp -r ./uchicago-3d-campus/dist/* ./dist/uchicago-3d-campus/
+
+      - name: Install & build Ogurayama Jojakko-ji (jojakko-ji-3d)
+        working-directory: ./jojakko-ji-3d
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload Jojakko-ji build bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jojakko-ji-3d-dist
+          path: './jojakko-ji-3d/dist'
+
+      - name: Bundle Jojakko-ji under /jojakko-ji-3d for GitHub Pages
+        run: |
+          mkdir -p ./dist/jojakko-ji-3d
+          cp -r ./jojakko-ji-3d/dist/* ./dist/jojakko-ji-3d/
 
       - name: Check GitHub Pages configuration
         id: check_pages

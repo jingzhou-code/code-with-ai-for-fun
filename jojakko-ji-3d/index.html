@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>小倉山 常寂光寺 — Three.js 全境三维数字还原 | Ogurayama Jōjakkō-ji</title>
+    <meta
+      name="description"
+      content="基于 Three.js 全方位三维还原京都岚山小仓山常寂光寺（山门、茅葺仁王门、石段红叶云海、伏见桃山城移筑本堂、古律黄钟调钟楼、妙见堂、池泉庭园、重要文化财多宝塔、歌仙祠与时雨亭迹、山顶展望台），支持四季流转、昼夜光影与第一人称参拜漫步。"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body>
+    <!-- Full-Viewport Three.js WebGL Stage -->
+    <div id="canvas-stage" aria-label="常寂光寺三维场景"></div>
+
+    <!-- 3D Projected Landmark Floating Markers -->
+    <div id="world-markers" aria-hidden="true"></div>
+
+    <!-- Loading Curtain -->
+    <div id="loading-screen" role="status" aria-live="polite">
+      <div class="loading-inner">
+        <div class="hanko-seal">常寂光</div>
+        <p class="loading-kicker">京都・嵯峨野 小倉山</p>
+        <h2 class="loading-title">常寂光寺</h2>
+        <p class="loading-sub">正在构筑小仓山地形、二百余株枫林、茅葺仁王门与多宝塔…</p>
+        <div class="loading-bar"><span id="loading-progress"></span></div>
+      </div>
+    </div>
+
+    <!-- Main Wabi-Sabi Interface Overlay -->
+    <header id="hud-header" class="hud-layer">
+      <div class="brand-plaque">
+        <div class="seal-mark" aria-hidden="true">寂光</div>
+        <div class="brand-copy">
+          <p class="brand-kicker">京都・嵯峨小倉山 日蓮宗古刹（文禄五年開創）</p>
+          <h1 id="page-title">小倉山 常寂光寺</h1>
+        </div>
+      </div>
+
+      <nav class="top-actions" aria-label="场景交互控制">
+        <div class="mode-segmented" role="group" aria-label="视角模式">
+          <button id="btn-mode-orbit" class="seg-btn active" type="button" title="自由旋转缩放俯瞰全山">
+            俯瞰自由
+          </button>
+          <button id="btn-mode-walk" class="seg-btn" type="button" title="第一人称沿石阶参道步行参拜（WASD + 拖拽视角）">
+            参拜漫步
+          </button>
+          <button id="btn-mode-tour" class="seg-btn" type="button" title="沿参拜路线自动巡礼境内十景">
+            自动巡礼
+          </button>
+        </div>
+
+        <button id="btn-bell" class="action-btn accent-vermilion" type="button" title="撞响宽永十八年钟楼古律黄钟调梵钟（快捷键 B）">
+          撞钟 · 梵音
+        </button>
+        <button id="btn-shigure" class="action-btn" type="button" title="切换小仓山时雨细雨与山雾">
+          小仓时雨
+        </button>
+        <button id="btn-markers" class="action-btn active" type="button" title="显示或隐藏场景建筑地标铭牌">
+          地标铭牌
+        </button>
+        <button id="btn-audio" class="action-btn" type="button" title="开启或关闭山风、竹林、鹿威与黄莺环境音">
+          寂光音景
+        </button>
+        <button id="btn-zen-ui" class="action-btn" type="button" title="隐藏界面以纯粹沉浸观赏（快捷键 H）">
+          净界全屏
+        </button>
+      </nav>
+    </header>
+
+    <!-- Floating Restore Button when Zen Fullscreen is Active -->
+    <button id="btn-restore-ui" class="restore-ui-btn hidden" type="button">
+      显示导览界面 (H)
+    </button>
+
+    <!-- Walk Mode Hint Toast -->
+    <div id="walk-hint" class="walk-hint hidden" role="note">
+      <span>参拜漫步模式：</span>
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向键行走登山 · 按住鼠标拖拽环顾四周 · <kbd>Shift</kbd> 疾行 · <kbd>B</kbd> 撞钟
+    </div>
+
+    <!-- Left Sidebar: Keidai 10 Landmarks & Slope Map -->
+    <aside id="hud-left" class="hud-layer side-panel" aria-label="境内十景导览">
+      <div class="panel-header">
+        <span class="panel-label">境内案内 · 参拜十景</span>
+        <button id="btn-toggle-map" class="mini-link-btn" type="button">收起列表</button>
+      </div>
+
+      <div id="keidai-body">
+        <!-- Schematic Slope Elevation Minimap -->
+        <div class="slope-map-box" title="小仓山东西剖面与参拜动线（东低西高）">
+          <svg id="keidai-svg" viewBox="0 0 260 88" aria-label="小仓山参拜高度剖面图">
+            <defs>
+              <linearGradient id="slopeGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4e6b3a" stop-opacity="0.35" />
+                <stop offset="65%" stop-color="#b84228" stop-opacity="0.45" />
+                <stop offset="100%" stop-color="#d49b38" stop-opacity="0.55" />
+              </linearGradient>
+            </defs>
+            <!-- Mountain slope silhouette (Left=East Sanmon 0m, Right=West Observatory +27m) -->
+            <path
+              d="M 10 78 L 48 74 L 84 68 L 136 48 L 198 28 L 244 12 L 252 78 Z"
+              fill="url(#slopeGrad)"
+              stroke="rgba(218,195,152,0.4)"
+              stroke-width="1"
+            />
+            <text x="12" y="85" class="svg-caption">東・山門 (0m)</text>
+            <text x="176" y="85" class="svg-caption">西・小倉山展望台 (+27m)</text>
+            <g id="svg-landmark-dots"></g>
+            <circle id="svg-player-dot" cx="24" cy="74" r="4" class="player-dot" />
+          </svg>
+        </div>
+
+        <ul id="landmark-list" class="landmark-list"></ul>
+      </div>
+    </aside>
+
+    <!-- Right Info Card: Active Landmark History & Ogura Waka Poetry -->
+    <section id="hud-right" class="hud-layer info-card" aria-live="polite">
+      <div class="info-top-row">
+        <span id="info-order" class="info-badge">全景</span>
+        <span id="info-era" class="info-era">文禄五年（1596）日禛上人開創</span>
+        <button id="btn-collapse-info" class="mini-link-btn" type="button" title="折叠或展开解说">折叠</button>
+      </div>
+      <h2 id="info-title" class="info-title">小倉山 常寂光寺 全景</h2>
+      <p id="info-subtitle" class="info-subtitle">Ogurayama Jōjakkō-ji — 塀のない紅葉と苔の古刹</p>
+
+      <div id="info-expandable">
+        <p id="info-desc" class="info-desc"></p>
+        <blockquote class="waka-box">
+          <p id="info-poem" class="waka-poem"></p>
+          <footer id="info-poet" class="waka-poet"></footer>
+        </blockquote>
+        <div class="info-nav-row">
+          <button id="btn-prev-spot" class="step-nav-btn" type="button">← 上一景</button>
+          <button id="btn-walk-here" class="step-nav-btn highlight" type="button">在此处漫步</button>
+          <button id="btn-next-spot" class="step-nav-btn" type="button">下一景 →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Bar: Four Seasons & Continuous Kyoto Sun/Night Time Control -->
+    <footer id="hud-bottom" class="hud-layer bottom-bar" aria-label="四季与光阴控制">
+      <div class="season-group" role="group" aria-label="常寂光寺四季切换">
+        <span class="bar-label">四季</span>
+        <button class="season-btn active" data-season="autumn" type="button">深秋红叶</button>
+        <button class="season-btn" data-season="summer" type="button">初夏青枫</button>
+        <button class="season-btn" data-season="spring" type="button">春樱芽吹</button>
+        <button class="season-btn" data-season="winter" type="button">冬雪寂光</button>
+      </div>
+
+      <div class="bar-divider" aria-hidden="true"></div>
+
+      <div class="time-group">
+        <span class="bar-label">光阴</span>
+        <div class="time-presets">
+          <button class="time-chip" data-hour="7.4" type="button">朝雾</button>
+          <button class="time-chip" data-hour="12.0" type="button">正午</button>
+          <button class="time-chip active" data-hour="15.8" type="button">夕照</button>
+          <button class="time-chip" data-hour="19.5" type="button">夜拜点灯</button>
+        </div>
+        <input
+          id="time-slider"
+          type="range"
+          min="5.5"
+          max="21.0"
+          step="0.1"
+          value="15.8"
+          aria-label="时刻调节"
+        />
+        <span id="time-readout" class="time-readout">15:48</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

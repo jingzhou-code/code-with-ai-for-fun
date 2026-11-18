@@ -1,10 +1,11 @@
-# 世界名校 Three.js 三维数字孪生系统（复旦江湾 · 复旦邯郸 · 美国圣母大学 · 美国芝加哥大学）
+# Three.js 三维数字孪生与古建还原集（复旦江湾 · 复旦邯郸 · 美国圣母大学 · 美国芝加哥大学 · 京都常寂光寺）
 
-> **校区导航**：
+> **项目导航**：
 > - **复旦大学江湾校区（根目录 `/`）**：淞沪路 2005 号 · 1,600 亩新古典主义建筑群与日月湖水系（见下方说明）
 > - **[复旦大学邯郸校区（`./fudan-handan-3d/`）](./fudan-handan-3d/README.md)**：邯郸路 220 号 · 1,383 亩本部、北区、东区、南区全境（光华楼、相辉堂、子彬院、正大体育馆、燕园曦园等）
 > - **[美国圣母大学（`./notre-dame-3d/`）](./notre-dame-3d/README.md)**：印第安纳州南本德 · 1:1 全景还原金顶主楼、圣心大教堂、露德岩洞、达阵耶稣图书馆、圣母体育场、双湖与 33 座宿舍院（目录内附 [`notre-dame-3d.zip`](./notre-dame-3d/notre-dame-3d.zip) 与 [`notre-dame-3d-dist.zip`](./notre-dame-3d/notre-dame-3d-dist.zip)）
 > - **[美国芝加哥大学（`./uchicago-3d-campus/`）](./uchicago-3d-campus/README.md)**：芝加哥海德公园 55th–61st St · 主四方院七大哥特庭院、洛克菲勒大教堂、Mansueto 玻璃穹顶、Robie House 等 46+ 栋建筑全境（目录内附 [`uchicago-3d-campus.zip`](./uchicago-3d-campus/uchicago-3d-campus.zip) 与 [`uchicago-3d-campus-dist.zip`](./uchicago-3d-campus/uchicago-3d-campus-dist.zip)）
+> - **[京都小仓山·常寂光寺（`./jojakko-ji-3d/`）](./jojakko-ji-3d/README.md)**：京都岚山嵯峨野名刹全境三维还原 · 山门、茅葺仁王门、44 级红叶石段、桃山城移筑本堂、黄钟调钟楼、国指定重要文化财多宝塔、时雨亭迹与山顶展望台（目录内附 [`jojakko-ji-3d.zip`](./jojakko-ji-3d/jojakko-ji-3d.zip) 与 [`jojakko-ji-3d-dist.zip`](./jojakko-ji-3d/jojakko-ji-3d-dist.zip)）
 
 ---
 
